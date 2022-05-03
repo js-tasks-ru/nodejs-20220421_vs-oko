@@ -11,19 +11,17 @@ class LineSplitStream extends stream.Transform {
     this.data += chunk;
     const dataStr = this.data.toString();
     if (dataStr.includes(os.EOL)) {
-      const dataArr = dataStr.split(os.EOL).slice(0, -1);
+      const dataArr = dataStr.split(os.EOL);
+      this.data = dataArr.pop();
       dataArr.forEach((chunk) => this.push(chunk));
-      this.data = dataStr.split(os.EOL).slice(-1)[0];
     }
     callback();
   }
 
   _flush(callback) {
-    this.push(this.data);
-    this._destroy(null, callback);
+    if (this.data) this.push(this.data);
+    callback();
   }
 }
 
 module.exports = LineSplitStream;
-
-
