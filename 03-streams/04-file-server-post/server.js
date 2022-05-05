@@ -6,6 +6,15 @@ const LimitSizeStream = require('./LimitSizeStream');
 const server = new http.Server();
 
 server.on('request', (req, res) => {
+  switch (req.method) {
+    case 'POST':
+
+      break;
+
+    default:
+      res.statusCode = 501;
+      res.end('Not implemented');
+  }
   const url = new URL(req.url, `http://${req.headers.host}`);
   const pathname = url.pathname.slice(1);
   if (pathname.includes('/')) {
@@ -13,6 +22,7 @@ server.on('request', (req, res) => {
     res.end('nested files are not supported');
   }
   const filepath = path.join(__dirname, 'files', pathname);
+
   fs.stat(filepath, (err) => {
     if (err == null) {
       res.statusCode = 409;
@@ -43,16 +53,6 @@ server.on('request', (req, res) => {
       console.log('Some other error: ', err.code);
     }
   });
-
-  switch (req.method) {
-    case 'POST':
-
-      break;
-
-    default:
-      res.statusCode = 501;
-      res.end('Not implemented');
-  }
 });
 
 module.exports = server;
