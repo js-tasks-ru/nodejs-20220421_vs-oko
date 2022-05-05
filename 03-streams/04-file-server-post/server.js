@@ -19,6 +19,7 @@ server.on('request', (req, res) => {
       res.end('File exists');
     } else if (err.code === 'ENOENT') {
       const limitedStream = new LimitSizeStream({limit: 1e6});
+
       limitedStream.on('error', (err) => {
         if (err.code === 'LIMIT_EXCEEDED') {
           res.statusCode = 413;
@@ -28,9 +29,11 @@ server.on('request', (req, res) => {
           res.end('Something went wrong');
         }
       });
-      req.on('aborted', (err) => {
-        if (err) throw err;
-        console.log('file.txt was deleted');
+      req.on('aborted', () => {
+        fs.unlink(filepath, (err) => {
+          if (err) throw err;
+          console.log('file.txt was deleted');
+        });
         outStream.destroy();
         limitedStream.destroy();
       });
