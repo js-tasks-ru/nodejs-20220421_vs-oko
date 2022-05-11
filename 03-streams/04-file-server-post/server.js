@@ -33,6 +33,7 @@ server.on('request', (req, res) => {
       limitedStream.on('error', (err) => {
         if (err.code === 'LIMIT_EXCEEDED') {
           res.statusCode = 413;
+          delFile(filepath);
           res.end(err.code);
         } else {
           res.statusCode = 500;
@@ -40,13 +41,16 @@ server.on('request', (req, res) => {
         }
       });
       req.on('aborted', () => {
-        fs.unlink(filepath, (err) => {
-          if (err) throw err;
-          console.log('file.txt was deleted');
-        });
+        delFile(filepath);
         outStream.destroy();
         limitedStream.destroy();
       });
+      function delFile(filepath) {
+        fs.unlink(filepath, (err) => {
+          if (err) throw err;
+          console.log('file.txt was deleted');
+        })
+      }
       const outStream = fs.createWriteStream(filepath);
       req.pipe(limitedStream).pipe(outStream);
     } else {
