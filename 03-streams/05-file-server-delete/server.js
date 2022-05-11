@@ -12,6 +12,7 @@ server.on('request', (req, res) => {
     default:
       res.statusCode = 501;
       res.end('Not implemented');
+      return;
   }
   const url = new URL(req.url, `http://${req.headers.host}`);
 
