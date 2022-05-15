@@ -37,6 +37,7 @@ server.on('request', (req, res) => {
         if (err.code === 'LIMIT_EXCEEDED') {
           console.log(err.code);
           limitedStream.destroy();
+          outStream.destroy();
           delFile(filepath);
           setTimeout(() => {
             res.statusCode = 413;
