@@ -18,6 +18,7 @@ server.on('request', (req, res) => {
   }
   const url = new URL(req.url, `http://${req.headers.host}`);
   const pathname = url.pathname.slice(1);
+
   if (pathname.includes('/')) {
     res.statusCode = 400;
     res.end('nested files are not supported');
@@ -35,32 +36,43 @@ server.on('request', (req, res) => {
       limitedStream.on('error', (err) => {
         if (err.code === 'LIMIT_EXCEEDED') {
           console.log(err.code);
-          res.statusCode = 413;
-          res.end(err.code, delFile(filepath));
+          limitedStream.destroy();
+          delFile(filepath);
+          setTimeout(() => {
+            res.statusCode = 413;
+            res.end(err.code);
+          })
         } else {
           res.statusCode = 500;
           res.end('Something went wrong');
         }
       });
+
       req.on('aborted', () => {
-        delFile(filepath);
-        outStream.destroy();
         limitedStream.destroy();
+        outStream.destroy();
+        delFile(filepath);
       });
+
       function delFile(filepath) {
         fs.unlink(filepath, (err) => {
-          if (err) throw err;
+          if (err) console.log(err);
           console.log(pathname, 'was deleted');
         })
       }
+
       const outStream = fs.createWriteStream(filepath);
+
       req.pipe(limitedStream).pipe(outStream);
-      outStream.on('finish', () => {
+
+      outStream.on('close', () => {
         res.statusCode = 201;
         res.end()
       })
     } else {
       console.log('Some other error: ', err.code);
+      res.statusCode = 500;
+      res.end('Something went wrong');
     }
   });
 });
