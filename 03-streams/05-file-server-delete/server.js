@@ -21,12 +21,13 @@ server.on('request', (req, res) => {
   if (pathname.includes('/')) {
     res.statusCode = 400;
     res.end('nested files are not supported');
+    return;
   }
 
   const filepath = path.join(__dirname, 'files', pathname);
 
   fs.stat(filepath, (err) => {
-    if (err == null) {
+    if (err === null) {
       fs.unlink(filepath, (err) => {
         if (err) {
           res.statusCode = 500;
