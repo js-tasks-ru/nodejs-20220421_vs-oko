@@ -39,10 +39,8 @@ server.on('request', (req, res) => {
           limitedStream.destroy();
           outStream.destroy();
           delFile(filepath);
-          setTimeout(() => {
-            res.statusCode = 413;
-            res.end(err.code);
-          })
+          res.statusCode = 413;
+          res.end(err.code);
         } else {
           res.statusCode = 500;
           res.end('Something went wrong');
@@ -66,7 +64,7 @@ server.on('request', (req, res) => {
 
       req.pipe(limitedStream).pipe(outStream);
 
-      outStream.on('close', () => {
+      outStream.on('finish', () => {
         res.statusCode = 201;
         res.end()
       })
