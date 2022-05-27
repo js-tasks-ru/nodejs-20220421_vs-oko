@@ -1,5 +1,6 @@
 const Koa = require('koa');
 const Router = require('koa-router');
+const mongoose = require('mongoose');
 const {productsBySubcategory, productList, productById} = require('./controllers/products');
 const {categoryList} = require('./controllers/categories');
 
@@ -24,8 +25,16 @@ const router = new Router({prefix: '/api'});
 
 router.get('/categories', categoryList);
 router.get('/products', productsBySubcategory, productList);
-router.get('/products/:id', productById);
+router.get('/products/:id',validateObjectID, productById);
+function validateObjectID(ctx, next) {
+  if(!mongoose.isValidObjectId(ctx.params.id)){
+    ctx.status = 400;
+    ctx.body = 'invalid id';
+    return;
+  }
 
+    return next();
+}
 app.use(router.routes());
 
 module.exports = app;
