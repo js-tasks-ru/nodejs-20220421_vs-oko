@@ -8,23 +8,31 @@ const Router = require('koa-router');
 const router = new Router();
 const clients = [];
 
-router.get('/subscribe', async (ctx, next) => {
-  clients.push(
-   new Promise(resolve => {
-          const timer =  setInterval(()=>{if (ctx.app.message) resolve(timer)}, 100);
-          return timer;
-      }).then(timer => clearInterval(timer))
-    );
-  for await (const client of clients) {
-    ctx.body = ctx.app.message;
-    clients.splice(clients.indexOf(client), 1)
-  }
-  ctx.app.message = null;
+router.get('/subscribe', async (ctx) => {
+  ctx.body = await new Promise((resolve) => {
+    clients.push(resolve);
+
+    ctx.res.on('close', function() {
+      clients.splice(clients.indexOf(resolve), 1);
+      resolve();
+    });
+  });
 });
 
-router.post('/publish', async (ctx, next) => {
-  ctx.app.message = ctx.request.body.message;
-  ctx.body = '';
+router.post('/publish', async (ctx) => {
+  const message = ctx.request.body.message;
+
+  if (!message) {
+    ctx.throw(400);
+  }
+
+  clients.forEach(function(resolve) {
+    resolve(message);
+  });
+
+  clients.length = 0;
+
+  ctx.body = 'ok';
 });
 
 app.use(router.routes());
