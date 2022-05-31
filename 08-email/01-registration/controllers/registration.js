@@ -43,9 +43,9 @@ module.exports.confirm = async (ctx, next) => {
     user.verificationToken = undefined;
     await user.save();
 
-    await ctx.login(user);
+    const token = await ctx.login(user);
 
-    ctx.body = {token: verificationToken}
+    ctx.body = {token}
 
   } catch (err) {
     throw err;
