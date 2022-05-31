@@ -35,7 +35,6 @@ module.exports.confirm = async (ctx, next) => {
 
     const user = await User.findOne({verificationToken});
     if(!user) {
-      console.log('пользователь с токеном', verificationToken, 'не найден');
       ctx.status = 400;
       ctx.body = {error: 'Ссылка подтверждения недействительна или устарела'};
       return;
